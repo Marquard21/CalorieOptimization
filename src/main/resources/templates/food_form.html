@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <title>[[${pageTitle}]]</title>
+</head>
+<body>
+<div class="container text-center">
+    <h1>[[${pageTitle}]]</h1>
+</div>
+<form th:action="@{/manage_foods/save}" th:object="${food}" method="post" style="max-width: 600px; margin: auto" >
+    <input type="hidden" th:field="*{id}">
+    <div class="mb-3">
+        <label for="nameInput" class="form-label">Név</label>
+        <input id="nameInput" type="text" class="form-control" th:field="*{name}" maxlength="20" required>
+    </div>
+    <div class="mb-3">
+        <label for="totalAmountInput" class="form-label">Mennyiség (g)</label>
+        <input id="totalAmountInput" type="number" class="form-control" th:field="*{totalAmount}" step="1" required>
+    </div>
+    <div class="mb-3">
+        <label for="energyInput" class="form-label">Energia (kcal/100g)</label>
+        <input id="energyInput" type="number" class="form-control" th:field="*{energy}" step="any" required>
+    </div>
+    <div class="mb-3">
+        <label for="proteinInput" class="form-label">Fehérje (g/100g)</label>
+        <input id="proteinInput" type="number" class="form-control" th:field="*{protein}" step="any" required>
+    </div>
+    <div class="mb-3">
+        <label for="carboHydrateInput" class="form-label">Szénhidrát (g/100g)</label>
+        <input id="carboHydrateInput" type="number" class="form-control" th:field="*{carboHydrate}" step="any" required>
+    </div>
+    <div class="mb-3">
+        <label for="sugarInput" class="form-label">amelyből cukrok (g/100g)</label>
+        <input id="sugarInput" type="number" class="form-control" th:field="*{sugar}" step="any" required>
+    </div>
+    <div class="mb-3">
+        <label for="fatInput" class="form-label">Zsír (g/100g)</label>
+        <input id="fatInput" type="number" class="form-control" th:field="*{fat}" step="any" required>
+    </div>
+    <div class="mb-3">
+        <label for="wholeFatsInput" class="form-label">amelyből telített zsírsavak (g/100g)</label>
+        <input id="wholeFatsInput" type="number" class="form-control" th:field="*{wholeFats}" step="any" required>
+    </div>
+    <div class="mb-3">
+        <label for="fiberInput" class="form-label">Rost (g/100g)</label>
+        <input id="fiberInput" type="number" class="form-control" th:field="*{fiber}" step="any" required>
+    </div>
+    <div class="mb-3">
+        <label for="saltInput" class="form-label">Só (g/100g)</label>
+        <input id="saltInput" type="number" class="form-control" th:field="*{salt}" step="any" required>
+    </div>
+    <div class="d-flex justify-content-between">
+        <a th:href="@{/manage_foods}" class="btn btn-secondary">Mégse</a>
+        <button type="submit" class="btn btn-primary">Mentés</button>
+    </div>
+</form>
+</body>
+</html>

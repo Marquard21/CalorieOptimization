@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <title>Emberek kezelése</title>
+</head>
+<body>
+    <div class="container text-center">
+        <h1>Emberek kezelése</h1>
+    </div>
+    <div class="d-flex justify-content-between" style="width: 80%; margin: auto; margin-bottom: 8px">
+        <a th:href="@{/}" class="btn btn-secondary">Vissza</a>
+        <a th:href="@{/manage_people/new}" class="btn btn-primary">Ember hozzáadása</a>
+    </div>
+    <div th:if="${message}" class="alert alert-success text-center my-4" style="width: 80%; margin: auto;">
+        [[${message}]]
+    </div>
+    <table class="table table-striped table-bordered" style="width: 80%; margin: auto">
+        <thead class="thead-dark">  <!--"table-dark"-->
+            <tr>
+                <th>Név</th>
+                <th>Születési dátum</th>
+                <th>Nem</th>
+                <th>Magasság</th>
+                <th>Súly</th>
+                <th>Aktivitási szint</th>
+                <th>Napi kalóriaszükséglet cél százalék</th>
+                <th>Fehérje cél százalék</th>
+                <th>Szénhidrát cél százalék</th>
+                <th>Zsír cél százalék</th>
+                <th>Műveletek</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="person: ${peopleList}">
+                <td th:text="${person.name}"></td>
+                <td th:text="${person.birthDate}"></td>
+                <td th:text="${person.sex} ? 'Férfi' : 'Nő'"></td>
+                <td th:text="${person.height} + ' cm'"></td>
+                <td th:text="${person.weight} + ' kg'"></td>
+                <td th:text="${person.activityLevel}"></td>
+                <td th:text="${person.intakePercentageOfDailyCalorieNeeds} + ' %'"></td>
+                <td th:text="${person.intakePercentageOfProtein} + ' %'"></td>
+                <td th:text="${person.intakePercentageOfCarboHydrate} + ' %'"></td>
+                <td th:text="${person.intakePercentageOfFat} + ' %'"></td>
+                <td>
+                    <a th:href="@{'/manage_people/delete/' + ${person.id}}" class="btn btn-outline-danger btn-sm">Törlés</a> /
+                    <a th:href="@{'/manage_people/edit/' + ${person.id}}" class="btn btn-outline-primary btn-sm">Szerkesztés</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

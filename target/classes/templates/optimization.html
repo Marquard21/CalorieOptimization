@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <title>Optimalázálás</title>
+    <style>
+        .step { display: none; }
+        .active-step { display: block; }
+    </style>
+</head>
+<body class="bg-light p-4">
+    <div class="container card shadow p-4">
+        <h3 class="mb-4">Optimalizáció beállítása</h3>
+
+        <!-- Select people -->
+        <div id="step1" class="step active-step">
+            <h5>Emberek kiválasztása</h5>
+            <table class="table table-hover">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Név</th>
+                        <th>Születési dátum</th>
+                        <th>Nem</th>
+                        <th>Magasság</th>
+                        <th>Súly</th>
+                        <th>Aktivitási szint</th>
+                        <th>Napi kalóriaszükséglet cél százalék</th>
+                        <th>Fehérje cél százalék</th>
+                        <th>Szénhidrát cél százalék</th>
+                        <th>Zsír cél százalék</th>
+                        <th><input type="checkbox" id="selectAllPeople" onclick="toggleAllPeople(this)"> Összes kiválasztása</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="person: ${peopleList}">
+                        <td th:text="${person.name}"></td>
+                        <td th:text="${person.birthDate}"></td>
+                        <td th:text="${person.sex} ? 'Férfi' : 'Nő'"></td>
+                        <td th:text="${person.height} + ' cm'"></td>
+                        <td th:text="${person.weight} + ' kg'"></td>
+                        <td th:text="${person.activityLevel}"></td>
+                        <td th:text="${person.intakePercentageOfDailyCalorieNeeds} + ' %'"></td>
+                        <td th:text="${person.intakePercentageOfProtein} + ' %'"></td>
+                        <td th:text="${person.intakePercentageOfCarboHydrate} + ' %'"></td>
+                        <td th:text="${person.intakePercentageOfFat} + ' %'"></td>
+                        <td>
+                            <input type="checkbox" name="selectedPeople" th:value="${person.id}"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="d-flex justify-content-between">
+                <a th:href="@{/}" class="btn btn-secondary">Mégse</a>
+                <button class="btn btn-primary" onclick="nextStep(2)">Következő</button>
+            </div>
+        </div>
+
+        <!-- Select foods -->
+        <div id="step2" class="step">
+            <h5>Ételek kiválasztása</h5>
+            <table class="table table-hover">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Név</th>
+                        <th>Mennyiség</th>
+                        <th>Energia</th>
+                        <th>Fehérje</th>
+                        <th>Szénhidrát</th>
+                        <th>amelyből cukrok</th>
+                        <th>Zsír</th>
+                        <th>amelyből telített zsírsavak</th>
+                        <th>Rost</th>
+                        <th>Só</th>
+                        <th><input type="checkbox" id="selectAllFoods" onclick="toggleAllFoods(this)"> Összes kiválasztása</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="food: ${foodsList}">
+                        <td th:text="${food.name}"></td>
+                        <td th:text="${food.totalAmount} + ' g'"></td>
+                        <td th:text="${food.energy} + ' kcal/100g'"></td>
+                        <td th:text="${food.protein} + ' g/100g'"></td>
+                        <td th:text="${food.carboHydrate} + ' g/100g'"></td>
+                        <td th:text="${food.sugar} + ' g/100g'"></td>
+                        <td th:text="${food.fat} + ' g/100g'"></td>
+                        <td th:text="${food.wholeFats} + ' g/100g'"></td>
+                        <td th:text="${food.fiber} + ' g/100g'"></td>
+                        <td th:text="${food.salt} + ' g/100g'"></td>
+                        <td>
+                            <input type="checkbox" name="selectedFoods" th:value="${food.id}"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="d-flex justify-content-between">
+                <button class="btn btn-secondary" onclick="prevStep(1)">Vissza</button>
+                <button class="btn btn-primary" onclick="nextStep(3)">Következő</button>
+            </div>
+        </div>
+
+        <!-- Choose Options -->
+        <div id="step3" class="step">
+            <h5>Egyéb opciók</h5>
+            <form th:action="@{/optimizing}" method="post">
+                <div class="mb-3">
+                    <label class="form-label">Elitizmus (%)</label>
+                    <input type="number" class="form-control" name="elitismRate" step="1" min="0" max="50" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Étkezések száma</label>
+                    <input type="number" class="form-control" name="numberOfMeals" step="1" min="1" max="5" required>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <button class="btn btn-secondary" type="button" onclick="prevStep(2)">Vissza</button>
+                    <button class="btn btn-primary" type="submit">Küldés</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function nextStep(step) {
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active-step'));
+            document.getElementById('step' + step).classList.add('active-step');
+        }
+
+        function prevStep(step) {
+            nextStep(step);
+        }
+
+        function toggleAllPeople(source) {
+            const checkboxes = document.querySelectorAll('input[name="selectedPeople"]');
+            checkboxes.forEach(cb => cb.checked = source.checked);
+        }
+
+        function toggleAllFoods(source) {
+            const checkboxes = document.querySelectorAll('input[name="selectedFoods"]');
+            checkboxes.forEach(cb => cb.checked = source.checked);
+        }
+
+        document.querySelector("form").addEventListener("submit", function() {
+            const selectedPeople = Array.from(document.querySelectorAll('input[name="selectedPeople"]:checked')).map(cb => cb.value);
+            const selectedFoods = Array.from(document.querySelectorAll('input[name="selectedFoods"]:checked')).map(cb => cb.value);
+
+            const form = this;
+            selectedPeople.forEach(id => {
+                const hidden = document.createElement("input");
+                hidden.type = "hidden";
+                hidden.name = "selectedPeople";
+                hidden.value = id;
+                form.appendChild(hidden);
+            });
+
+            selectedFoods.forEach(id => {
+                const hidden = document.createElement("input");
+                hidden.type = "hidden";
+                hidden.name = "selectedFoods";
+                hidden.value = id;
+                form.appendChild(hidden);
+            });
+        });
+
+    </script>
+</body>
+</html>

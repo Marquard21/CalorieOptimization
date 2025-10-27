@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <title>Főmenü</title>
+</head>
+<body>
+    <div class="container text-center">
+        <h1 style="margin-top: 20px;">Főoldal</h1>
+        <form th:action="@{/manage_people}" method="get">
+            <button type="submit" class="btn btn-outline-primary m-1" style="width: 160px;">Emberek kezelése</button>
+        </form>
+        <form th:action="@{/manage_foods}" method="get">
+            <button type="submit" class="btn btn-outline-primary m-1" style="width: 160px;">Ételek kezelése</button>
+        </form>
+        <form th:action="@{/optimization}" method="get">
+            <button type="submit" class="btn btn-primary m-1" style="width: 160px;">Optimalizálás</button>
+        </form>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="btn btn-secondary m-1" style="width: 160px;">Kijelentkezés</button>
+        </form>
+    </div>
+</body>
+</html>

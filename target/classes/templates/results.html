@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <title>Optimalizáció eredménye</title>
+</head>
+<body>
+    <div class="container text-center">
+        <h2>Optimalizáció eredménye</h2>
+        <p>Legjobb találati érték: <span th:text="${fitness}"></span></p>
+    </div>
+    <div th:each="row, iStat : ${chromosome}" style="max-width: 400px; margin: auto">
+        <h3 th:text="${people[iStat.index].name}"></h3>
+        <ul class="list-group">
+            <li th:each="gene : ${row}" th:text="${gene}" class="list-group-item"></li>
+        </ul>
+    </div>
+    <div class="container text-center" style="margin-top: 8px">
+        <a th:href="@{/}" class="btn btn-primary">Vissza a Főmenübe</a>
+    </div>
+</body>
+</html>
