@@ -26,7 +26,7 @@ public class Person
     private LocalDate birthDate;
 
     @Column(nullable = false)
-    private boolean sex; // male = 1; female = 0
+    private boolean sex; // férfi = 1; nő = 0
 
     @Column(nullable = false)
     private int height; // cm
@@ -38,16 +38,28 @@ public class Person
     private double activityLevel; // multiplier [1, 2]
 
     @Column(nullable = false)
-    private int intakePercentageOfDailyCalorieNeeds; // how much of the users daily calorie needs want to use in calculation (1700kcal/day, 70% of that is 1190kcal/day)
+    private int intakePercentageOfDailyCalorieNeeds; // Az optimalizáció során használt kalória mennyiség hány százaléka legyen napi kalóriabeviteli szükségletnek az adott személynél
 
     @Column(nullable = false)
-    private int intakePercentageOfProtein; // how much of the users intakePercentageOfDailyCalorieNeeds wants it to be protein (1190kcal/day, 30% of that is going to be protein)
+    private int intakePercentageOfProtein; // Az optimalizáció során használt kalória mennyiség hány százaléka legyen fehérje az adott személynél
 
     @Column(nullable = false)
-    private int intakePercentageOfCarboHydrate; // how much of the users intakePercentageOfDailyCalorieNeeds wants it to be carbohydrate (1190kcal/day, 40% of that is going to be carbohydrate)
+    private int intakePercentageOfCarboHydrate; // Az optimalizáció során használt kalória mennyiség hány százaléka legyen szénhidrát az adott személynél
 
     @Column(nullable = false)
-    private int intakePercentageOfFat; // how much of the users intakePercentageOfDailyCalorieNeeds wants it to be fat (1190kcal/day, 30% of that is going to be fat)
+    private int intakeGramsOfSugar; // Az adott személynél megengedett cukor bevitel grammban, ugyanis minél kevesebb cukrot érdemes bevinni
+
+    @Column(nullable = false)
+    private int intakePercentageOfFat; // Az optimalizáció során használt kalória mennyiség hány százaléka legyen zsír az adott személynél
+
+    @Column(nullable = false)
+    private int intakePercentageOfWholeFats; // A bevitt zsírok hány százaléka legyen telített zsírsav az adott személynél
+
+    @Column(nullable = false)
+    private int intakeGramsOfFiber; // Az adott személyhez mennyi rost legyen kiosztva az optimalizáció során
+
+    @Column(nullable = false)
+    private int intakeGramsOfSalt; // Az adott személyhez mennyi só legyen kiosztva az optimalizáció során
 
     public Long getId()
     {
@@ -104,9 +116,29 @@ public class Person
         return intakePercentageOfCarboHydrate;
     }
 
+    public int getIntakeGramsOfSugar()
+    {
+        return intakeGramsOfSugar;
+    }
+
     public int getIntakePercentageOfFat()
     {
         return intakePercentageOfFat;
+    }
+
+    public int getIntakePercentageOfWholeFats()
+    {
+        return intakePercentageOfWholeFats;
+    }
+
+    public int getIntakeGramsOfFiber()
+    {
+        return intakeGramsOfFiber;
+    }
+
+    public int getIntakeGramsOfSalt()
+    {
+        return intakeGramsOfSalt;
     }
 
     public void setId(Long id)
@@ -164,9 +196,29 @@ public class Person
         this.intakePercentageOfCarboHydrate = intakePercentageOfCarboHydrate;
     }
 
+    public void setIntakeGramsOfSugar(int intakeGramsOfSugar)
+    {
+        this.intakeGramsOfSugar = intakeGramsOfSugar;
+    }
+
     public void setIntakePercentageOfFat(int intakePercentageOfFat)
     {
         this.intakePercentageOfFat = intakePercentageOfFat;
+    }
+
+    public void setIntakePercentageOfWholeFats(int intakePercentageOfWholeFats)
+    {
+        this.intakePercentageOfWholeFats = intakePercentageOfWholeFats;
+    }
+
+    public void setIntakeGramsOfFiber(int intakeGramsOfFiber)
+    {
+        this.intakeGramsOfFiber = intakeGramsOfFiber;
+    }
+
+    public void setIntakeGramsOfSalt(int intakeGramsOfSalt)
+    {
+        this.intakeGramsOfSalt = intakeGramsOfSalt;
     }
 
     public double getBMR()
@@ -175,12 +227,12 @@ public class Person
 
         if (sex)
         {
-            return (10 * weight) + (6.25 * height) - (5 * Period.between(birthDate, now).getYears()) + 5;
+            return (9.65 * weight) + (5.73 * height) - (5.08 * Period.between(birthDate, now).getYears()) + 260;
         }
 
         else
         {
-            return (10 * weight) + (6.25 * height) - (5 * Period.between(birthDate, now).getYears()) - 161;
+            return (7.38 * weight) + (6.07 * height) - (2.31 * Period.between(birthDate, now).getYears()) + 43;
         }
     }
 

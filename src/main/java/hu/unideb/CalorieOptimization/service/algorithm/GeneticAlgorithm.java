@@ -5,7 +5,8 @@ import hu.unideb.CalorieOptimization.model.Person;
 
 import java.util.*;
 
-public class GeneticAlgorithm {
+public class GeneticAlgorithm
+{
     private final List<Person> People;
 
     private final List<Food> Foods;
@@ -27,210 +28,162 @@ public class GeneticAlgorithm {
         this.numberOfMeals = numberOfMeals;
     }
 
-    private static int randomNumber(int start, int end) // véletlen szám generátor
+    private static int randomNumber(int start, int end)
     {
         return random.nextInt(end - start + 1) + start;
     }
 
-    private Gene[][] createChromosome() // létrehoz egy érvényes állapotot véletlenszerűen
+    private Food selectFood(Set<Food> usedFoods)
     {
-        int numberOfPeople = People.size();
-        int numberOfFoods = Foods.size();
+        Food food;
+        do {
+            food = Foods.get(randomNumber(0, Foods.size() - 1));
+        } while (usedFoods.contains(food));
 
-        Gene[][] chromosome = new Gene[numberOfPeople][numberOfMeals];
-        List<Gene> usedAmounts = new ArrayList<>(); // adott ételekből mennyi lett elfogyasztva más emberek által
-
-        if (numberOfFoods < numberOfMeals) // 3 étkezés esetén 3 különböző ételnek kell szerepelnie egy embernél
-        {
-            throw new IllegalArgumentException("Not enough foods");
-        }
-
-        for (int i = 0; i < numberOfPeople; i++)
-        {
-            Set<Food> usedFoods = new HashSet<>(); // az adott ember által eddig fogyasztott ételek halmaza
-
-            for (int j = 0; j < numberOfMeals; j++)
-            {
-                Food currentFood;
-                do {
-                    currentFood = Foods.get(randomNumber(0, numberOfFoods - 1)); // véletlenszerű étel hozzárendelése
-                } while (usedFoods.contains(currentFood)); // ami még nem volt
-
-                int amount = randomNumber(0, currentFood.getTotalAmount()); // adott ételből véletlenszerű mennyiség  hozzárendelése
-
-                for (int k = 0; k < usedAmounts.size(); k++)
-                {
-                    if (usedAmounts.get(k).getFood().equals(currentFood) && amount + usedAmounts.get(k).getEaten() > currentFood.getTotalAmount()) // hogyha kevesebb étel van mint amennyit hozzá kellene rendelni
-                    {
-                        amount = currentFood.getTotalAmount() - usedAmounts.get(k).getEaten(); // akkor az összes maradék hozzárendelése (lehet 0)
-                    }
-                }
-
-                Gene gene = new Gene(currentFood, amount);
-                chromosome[i][j] = gene;
-                usedFoods.add(currentFood); // az adott ember által eddig fogyasztott ételek halmazának feltöltése
-
-                Food finalCurrentFood = currentFood; // effektíven véglegessé tett currentfood
-                Gene match = usedAmounts.stream()
-                        .filter(gen -> gen.getFood().equals(finalCurrentFood))
-                        .findFirst()
-                        .orElse(null);
-
-                if (match != null)
-                {
-                    match.setEaten(match.getEaten() + amount); // adott ételekből mennyi lett elfogyasztva más emberek által listájának szerkesztése
-                }
-
-                else
-                {
-                    usedAmounts.add(gene); // adott ételekből mennyi lett elfogyasztva más emberek által listájának feltöltése
-                }
-            }
-        }
-
-        return chromosome;
+        return food;
     }
 
-    private void mutateGene(Gene[][] chromosome, int row, int column) // adott kromoszóma adott helyén mutációt hajt végre figyelve arra hogy érvényes állapot jöjjön létre
+    private List<Individual> createInitialPopulation()
     {
+        List<Individual> population = new ArrayList<>();
 
-        int numberOfFoods = Foods.size();
-
-        int rows = chromosome.length;
-        int columns = chromosome[0].length;
-
-        chromosome[row][column] = null;
-
-        Set<Food> used = new HashSet<>(); // az adott ember által eddig fogyasztott ételek halmaza
-
-        Gene gene;
-
-        for (int j = 0; j < columns; j++)
+        for (int h = 0; h < POPULATION_SIZE; h++)
         {
-            if (chromosome[row][j] != null)
-                used.add(chromosome[row][j].getFood()); // az adott ember által eddig fogyasztott ételek halmazának feltöltése
-        }
+            Gene[][] chromosome = new Gene[People.size()][numberOfMeals];
+            List<Gene> usedAmounts = new ArrayList<>();
 
-        Food currentFood;
-        do
-        {
-            currentFood = Foods.get(randomNumber(0, numberOfFoods - 1)); // véletlenszerű étel hozzárendelése
-        } while (used.contains(currentFood)); // ami még nem volt
+            for (int i = 0; i < People.size(); i++)
+            {
+                Set<Food> usedFoods = new HashSet<>();
 
-        int amount = randomNumber(0, currentFood.getTotalAmount()); // adott ételből véletlenszerű mennyiség  hozzárendelése
-
-        int eaten = 0;
-        for (int k = 0; k < rows; k++)
-        {
-            for (int l = 0; l < columns; l++) {
-                if (chromosome[k][l] != null && chromosome[k][l].getFood().equals(currentFood))
+                for (int j = 0; j < numberOfMeals; j++)
                 {
-                    eaten += chromosome[k][l].getEaten(); // adott ételből mennyi lett elfogyasztva más emberek által
+                    Food currentFood = selectFood(usedFoods);
+
+                    int maxAmount = currentFood.getTotalAmount();
+
+                    for (Gene gene : usedAmounts)
+                        if (gene.getFood().equals(currentFood))
+                            maxAmount = Math.max(currentFood.getTotalAmount() - gene.getEaten(), 0);
+
+                    int amount = randomNumber(0, maxAmount);
+
+                    Gene gene = new Gene(currentFood, amount);
+                    chromosome[i][j] = gene;
+                    usedFoods.add(currentFood);
+
+                    Food finalCurrentFood = currentFood;
+                    Gene match = usedAmounts.stream()
+                            .filter(gen -> gen.getFood().equals(finalCurrentFood))
+                            .findFirst()
+                            .orElse(null);
+
+                    if (match != null)
+                        match.setEaten(match.getEaten() + amount);
+                    else
+                        usedAmounts.add(gene);
+
                 }
             }
+            population.add(new Individual(chromosome, People));
         }
 
-        if (currentFood.getTotalAmount() - eaten < amount) // hogyha kevesebb étel van mint amennyit hozzá kellene rendelni
-        {
-            amount = currentFood.getTotalAmount() - eaten; // akkor az összes maradék hozzárendelése (lehet 0)
-        }
+        return population;
+    }
+
+    private void mutateGene(Gene[][] chromosome, int row, int column)
+    {
+        chromosome[row][column] = null;
+        Set<Food> usedFoods = new HashSet<>();
+        Gene gene;
+
+        for (int j = 0; j < numberOfMeals; j++)
+            if (chromosome[row][j] != null)
+                usedFoods.add(chromosome[row][j].getFood());
+
+        Food currentFood = selectFood(usedFoods);
+
+        int eaten = 0;
+        for (Gene[] genes : chromosome)
+            for (Gene localGene : genes)
+                if (localGene != null && localGene.getFood().equals(currentFood))
+                    eaten += localGene.getEaten();
+
+        int maxAmount = Math.max(currentFood.getTotalAmount() - eaten, 0);
+        int amount = randomNumber(0, maxAmount);
 
         gene = new Gene(currentFood, amount);
-
         chromosome[row][column] = gene;
     }
 
-    private void repairOffspring(Gene[][] chromosome) // keresztezés során létrejövő érvénytelen utód állapotok javítása
+    private void repairOffspring(Gene[][] chromosome)
     {
-        int rows = chromosome.length;
-        int columns = chromosome[0].length;
+        Set<Food> usedFoods = new HashSet<>();
 
-        Set<Food> usedFoods = new HashSet<>(); // az adott ember által eddig fogyasztott ételek halmaza
-
-        for (int i = 0; i < rows; i++)
+        for (int i = 0; i < People.size(); i++)
         {
             Set<Food> used = new HashSet<>();
-            for (int j = 0; j < columns; j++)
+            for (int j = 0; j < numberOfMeals; j++)
             {
-                usedFoods.add(chromosome[i][j].getFood()); // az adott ember által eddig fogyasztott ételek halmazának feltöltése
+                usedFoods.add(chromosome[i][j].getFood());
                 if (!used.add(chromosome[i][j].getFood()))
                 {
-                    mutateGene(chromosome, i, j); // ha 2 szer van ugyanaz az étel egy embernél akkor mutáció
+                    Food currentFood = selectFood(used);
+                    int amount = randomNumber(0, currentFood.getTotalAmount());
+                    Gene gene = new Gene(currentFood, amount);
+                    chromosome[i][j] = gene;
                 }
             }
         }
 
-        ArrayList<Food> setfoods = new ArrayList<>(usedFoods); // mindegyik étel (egymással párhuzamos listák)
-        ArrayList<Double> totals = new ArrayList<>(); // és a hozzájuk tartozó össz mennyiség (egymással párhuzamos listák)
+        ArrayList<Food> setFoods = new ArrayList<>(usedFoods);
+        ArrayList<Double> totals = new ArrayList<>();
 
         int eaten;
-        for (int i = 0; i < setfoods.size(); i++)
+        for (Food setFood : setFoods)
         {
             eaten = 0;
-            for (int k = 0; k < rows; k++)
-            {
-                for (int l = 0; l < columns; l++) {
-                    if (chromosome[k][l] != null && chromosome[k][l].getFood().equals(setfoods.get(i)))
-                    {
-                        eaten += chromosome[k][l].getEaten();
-                    }
-                }
-            }
+            for (Gene[] genes : chromosome)
+                for (Gene gene: genes)
+                    if (gene != null && gene.getFood().equals(setFood))
+                        eaten += gene.getEaten();
+
             totals.add((double) eaten);
         }
 
-        for (int j = 0; j < totals.size(); j++)
+        for (int i = 0; i < totals.size(); i++)
         {
-            if (setfoods.get(j).getTotalAmount() < totals.get(j)) // hogyha egy adott ételből több van kiosztva a totals-t megváltozik egy arány számra
-            {
-                totals.set(j, totals.get(j) / setfoods.get(j).getTotalAmount()); // pl összesen 2500 gramm ki van osztva de csak 2000 gramm étel van akkor az arányszám 2500/2000 = 1.25 (125%) lesz
-            }
-
-            else // hogyha egy adott ételből nincs több kiosztva mint ami elérhető a totals-t 0-ra változik ezzel jelezve hogy nem kell arányszám
-            {
-                totals.set(j, 0.0);
-            }
+            if (setFoods.get(i).getTotalAmount() < totals.get(i))
+                totals.set(i, totals.get(i) / setFoods.get(i).getTotalAmount());
+            else
+                totals.set(i, 0.0);
         }
 
-        for (int k = 0; k < rows; k++)
-        {
-            for (int l = 0; l < columns; l++)
-            {
-                if (chromosome[k][l] != null && setfoods.contains(chromosome[k][l].getFood()) && totals.get(setfoods.indexOf(chromosome[k][l].getFood())) != 0) // hogyha totals nem nulla
-                {
-                    chromosome[k][l].setEaten((int) (chromosome[k][l].getEaten() / totals.get(setfoods.indexOf(chromosome[k][l].getFood())))); // az egyes emberekhez hozzárendelt étel mennyiségeket az arányszámmal osztva, a kiosztott össz mennyiség nem fogja meghaladni az összes elérhető étel mennyiséget
-                }
-            }
-        }
-
+        for (Gene[] genes : chromosome)
+            for (Gene gene: genes)
+                if (gene != null && setFoods.contains(gene.getFood()) && totals.get(setFoods.indexOf(gene.getFood())) != 0)
+                    gene.setEaten((int) (gene.getEaten() / totals.get(setFoods.indexOf(gene.getFood()))));
     }
 
     private Individual crossOver(Individual parent1, Individual parent2)
     {
-        int rows = People.size();
-        int columns = numberOfMeals;
+        Gene[][] childChromosome = new Gene[People.size()][numberOfMeals];
 
-        Gene[][] childChromosome = new Gene[rows][columns];
-
-        for (int i = 0; i < rows; i++)
+        for (int i = 0; i < People.size(); i++)
         {
-            for (int j = 0; j < columns; j++) // mátrixot bejárva
+            for (int j = 0; j < numberOfMeals; j++)
             {
-
-                float p = randomNumber(0, 100) / 100f;
-
-                if (p < 0.45)
-                    childChromosome[i][j] = parent1.getChromosome()[i][j].clone(); // adott gén első szülőtöl jön 45%
-
-                else if (p < 0.90)
-                    childChromosome[i][j] = parent2.getChromosome()[i][j].clone(); // adott gén második szülőtöl jön 45%
-
-                else
-                    mutateGene(childChromosome, i, j); // adott gén mutálódik 10%
+                Integer p = randomNumber(1, 100);
+                switch (p)
+                {
+                    case Integer x when x <= 45 -> childChromosome[i][j] = parent1.getChromosome()[i][j].copy();
+                    case Integer x when x <= 90 -> childChromosome[i][j] = parent2.getChromosome()[i][j].copy();
+                    default -> mutateGene(childChromosome, i, j);
+                }
             }
         }
 
-        repairOffspring(childChromosome); // az utód nem feltétlen érvényes állapot, javításra szorul
+        repairOffspring(childChromosome);
 
         return new Individual(childChromosome, People);
     }
@@ -239,57 +192,43 @@ public class GeneticAlgorithm {
     {
         int sameBestFitnessCounter = 0;
 
-        List<Individual> population = new ArrayList<>();
+        List<Individual> population = createInitialPopulation();
+        Collections.sort(population);
 
-        for (int i = 0; i < POPULATION_SIZE; i++) // kezdeti populáció feltöltése véletlenszerűen generált egyedekkel
+        int prevBestFitness = population.get(0).getFitness();
+
+        while (sameBestFitnessCounter < 100)
         {
-            Gene[][] chromosome = createChromosome();
-            population.add(new Individual(chromosome, People));
-        }
-
-        Collections.sort(population); // fitness szerinti rendezés, a legjobb egyed az első helyre kerül
-
-        int prevBestFitness = population.get(0).getFitness(); // előző generáció legjobb fitness értékének eltárolása
-
-        while (sameBestFitnessCounter < 100) // amíg nincs tökéletes megoldás vagy 100 generáción át nem javul fitness érték
-        {
-            if (population.get(0).getFitness() == 0) // ha a legjobb egyed célállapot akkor leáll
-            {
+            if (population.get(0).getFitness() == 0)
                 break;
-            }
 
             List<Individual> newGeneration = new ArrayList<>();
 
-            int s = elitismRate; // a populáció X%-a
-            for (int i = 0; i < s; i++)
-                newGeneration.add(population.get(i)); // elitizmus miatt átkerül a következő generációba
+            int s = elitismRate;
+            for (int i = 0; i < POPULATION_SIZE / 100 * s; i++)
+                newGeneration.add(population.get(i));
 
 
-            s = 100 - s; // a populáció 100-X %-a
+            s = POPULATION_SIZE - POPULATION_SIZE / 100 * s;
             for (int i = 0; i < s; i++)
             {
-                int r = randomNumber(0, 50);
-                Individual parent1 = population.get(r); // top 50 egyedből kiválasztva
-                r = randomNumber(0, 50);
-                Individual parent2 = population.get(r); // top 50 egyedből kiválasztva
-                Individual offspring = crossOver(parent1, parent2); // keresztezés, egy utódot ad
+                int r = randomNumber(0, (POPULATION_SIZE / 100 * 50) - 1);
+                Individual parent1 = population.get(r);
+                r = randomNumber(0, (POPULATION_SIZE / 100 * 50) - 1);
+                Individual parent2 = population.get(r);
+                Individual offspring = crossOver(parent1, parent2);
                 newGeneration.add(offspring);
             }
 
-            population = newGeneration; // új generácó lesz a populáció
-            Collections.sort(population);// fitness szerinti rendezés, a legjobb egyed az első helyre kerül
+            population = newGeneration;
+            Collections.sort(population);
 
-            if (population.get(0).getFitness() == prevBestFitness) // javult e fitness érték
-            {
-                sameBestFitnessCounter++; // nem javult --> számláló +1
-            }
-
+            if (population.get(0).getFitness() == prevBestFitness)
+                sameBestFitnessCounter++;
             else
-            {
-                sameBestFitnessCounter = 0; // javult --> számláló visszaállítás 0-ra
-            }
+                sameBestFitnessCounter = 0;
 
-            prevBestFitness = population.get(0).getFitness(); // előző generáció legjobb fitness értékének eltárolása
+            prevBestFitness = population.get(0).getFitness();
         }
 
         return population.get(0);

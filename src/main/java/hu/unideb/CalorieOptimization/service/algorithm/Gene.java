@@ -4,9 +4,9 @@ import hu.unideb.CalorieOptimization.model.Food;
 
 public class Gene
 {
-    Food food; // mit egyen az adott személy (nem Food csak String)
+    Food food;
 
-    int eaten; // mennyit egyen az adott személy
+    int eaten;
 
     public Gene(Food food, int eaten)
     {
@@ -29,7 +29,7 @@ public class Gene
         this.eaten = eaten;
     }
 
-    public Gene clone() // szülő kromoszóma értékének másolása keresztezéskor, nem pedig szülő memóriacímére mutatás
+    public Gene copy()
     {
         return new Gene(this.food, this.eaten);
     }

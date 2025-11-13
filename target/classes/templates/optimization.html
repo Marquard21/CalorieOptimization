@@ -13,10 +13,13 @@
 <body class="bg-light p-4">
     <div class="container card shadow p-4">
         <h3 class="mb-4">Optimalizáció beállítása</h3>
+        <div th:if="${errorMessage}" class="alert alert-danger text-center">
+            <p th:text="${errorMessage}" style="margin-bottom: 0"></p>
+        </div>
 
         <!-- Select people -->
         <div id="step1" class="step active-step">
-            <h5>Emberek kiválasztása</h5>
+            <h5><b>Emberek kiválasztása</b> ➜ Ételek kiválasztása ➜ Egyéb opciók</h5>
             <table class="table table-hover">
                 <thead class="table-primary">
                     <tr>
@@ -26,10 +29,14 @@
                         <th>Magasság</th>
                         <th>Súly</th>
                         <th>Aktivitási szint</th>
-                        <th>Napi kalóriaszükséglet cél százalék</th>
-                        <th>Fehérje cél százalék</th>
-                        <th>Szénhidrát cél százalék</th>
-                        <th>Zsír cél százalék</th>
+                        <th>Napi kalóriaszükséglet</th>
+                        <th>Fehérje</th>
+                        <th>Szénhidrát</th>
+                        <th>Cukor</th>
+                        <th>Zsír</th>
+                        <th>Telített zsírsavak</th>
+                        <th>Rost</th>
+                        <th>Só</th>
                         <th><input type="checkbox" id="selectAllPeople" onclick="toggleAllPeople(this)"> Összes kiválasztása</th>
                     </tr>
                 </thead>
@@ -44,7 +51,11 @@
                         <td th:text="${person.intakePercentageOfDailyCalorieNeeds} + ' %'"></td>
                         <td th:text="${person.intakePercentageOfProtein} + ' %'"></td>
                         <td th:text="${person.intakePercentageOfCarboHydrate} + ' %'"></td>
+                        <td th:text="${person.intakeGramsOfSugar} + ' g'"></td>
                         <td th:text="${person.intakePercentageOfFat} + ' %'"></td>
+                        <td th:text="${person.intakePercentageOfWholeFats} + ' %'"></td>
+                        <td th:text="${person.intakeGramsOfFiber} + ' g'"></td>
+                        <td th:text="${person.intakeGramsOfSalt} + ' g'"></td>
                         <td>
                             <input type="checkbox" name="selectedPeople" th:value="${person.id}"/>
                         </td>
@@ -53,13 +64,13 @@
             </table>
             <div class="d-flex justify-content-between">
                 <a th:href="@{/}" class="btn btn-secondary">Mégse</a>
-                <button class="btn btn-primary" onclick="nextStep(2)">Következő</button>
+                <button class="btn btn-primary" onclick="changeActiveStepTo(2)">Következő</button>
             </div>
         </div>
 
         <!-- Select foods -->
         <div id="step2" class="step">
-            <h5>Ételek kiválasztása</h5>
+            <h5>Emberek kiválasztása ➜ <b>Ételek kiválasztása</b> ➜ Egyéb opciók</h5>
             <table class="table table-hover">
                 <thead class="table-primary">
                     <tr>
@@ -95,25 +106,25 @@
                 </tbody>
             </table>
             <div class="d-flex justify-content-between">
-                <button class="btn btn-secondary" onclick="prevStep(1)">Vissza</button>
-                <button class="btn btn-primary" onclick="nextStep(3)">Következő</button>
+                <button class="btn btn-secondary" onclick="changeActiveStepTo(1)">Vissza</button>
+                <button class="btn btn-primary" onclick="changeActiveStepTo(3)">Következő</button>
             </div>
         </div>
 
-        <!-- Choose Options -->
+        <!-- Other options -->
         <div id="step3" class="step">
-            <h5>Egyéb opciók</h5>
+            <h5>Emberek kiválasztása ➜ Ételek kiválasztása ➜ <b>Egyéb opciók</b></h5>
             <form th:action="@{/optimizing}" method="post">
                 <div class="mb-3">
                     <label class="form-label">Elitizmus (%)</label>
-                    <input type="number" class="form-control" name="elitismRate" step="1" min="0" max="50" required>
+                    <input type="number" class="form-control" name="elitismRate" step="1" min="0" max="20" required>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Étkezések száma</label>
                     <input type="number" class="form-control" name="numberOfMeals" step="1" min="1" max="5" required>
                 </div>
                 <div class="d-flex justify-content-between">
-                    <button class="btn btn-secondary" type="button" onclick="prevStep(2)">Vissza</button>
+                    <button class="btn btn-secondary" type="button" onclick="changeActiveStepTo(2)">Vissza</button>
                     <button class="btn btn-primary" type="submit">Küldés</button>
                 </div>
             </form>
@@ -121,13 +132,9 @@
     </div>
 
     <script>
-        function nextStep(step) {
+        function changeActiveStepTo(number){
             document.querySelectorAll('.step').forEach(s => s.classList.remove('active-step'));
-            document.getElementById('step' + step).classList.add('active-step');
-        }
-
-        function prevStep(step) {
-            nextStep(step);
+            document.getElementById('step' + number).classList.add('active-step');
         }
 
         function toggleAllPeople(source) {
@@ -135,10 +142,28 @@
             checkboxes.forEach(cb => cb.checked = source.checked);
         }
 
+        const peopleCheckboxes = document.querySelectorAll('input[name="selectedPeople"]');
+        peopleCheckboxes.forEach(cb => {
+            cb.addEventListener('change', function() {
+                const allChecked = [...peopleCheckboxes].every(cb => cb.checked);
+                const selectAllPeopleCheckbox = document.querySelector('#selectAllPeople');
+                selectAllPeopleCheckbox.checked = allChecked;
+            });
+        });
+
         function toggleAllFoods(source) {
             const checkboxes = document.querySelectorAll('input[name="selectedFoods"]');
             checkboxes.forEach(cb => cb.checked = source.checked);
         }
+
+        const foodsCheckboxes = document.querySelectorAll('input[name="selectedFoods"]');
+        foodsCheckboxes.forEach(cb => {
+            cb.addEventListener('change', function() {
+                const allChecked = [...foodsCheckboxes].every(cb => cb.checked);
+                const selectAllFoodsCheckbox = document.querySelector('#selectAllFoods');
+                selectAllFoodsCheckbox.checked = allChecked;
+            });
+        });
 
         document.querySelector("form").addEventListener("submit", function() {
             const selectedPeople = Array.from(document.querySelectorAll('input[name="selectedPeople"]:checked')).map(cb => cb.value);
@@ -161,7 +186,6 @@
                 form.appendChild(hidden);
             });
         });
-
     </script>
 </body>
 </html>

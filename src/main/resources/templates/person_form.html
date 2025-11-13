@@ -41,7 +41,7 @@
         </div>
         <div class="mb-3">
             <label for="activityLevelInput" class="form-label">Aktivitási szint (1 és 2 között)</label>
-            <input id="activityLevelInput" type="number" class="form-control" th:field="*{activityLevel}" step="0.1" min="1" max="2" required>
+            <input id="activityLevelInput" type="number" class="form-control" th:field="*{activityLevel}" step="0.01" min="1" max="2" required>
         </div>
         <div class="mb-3">
             <label for="intakePercentageOfDailyCalorieNeedsInput" class="form-label">A napi kalóriabevitel hány százaléka legyen használva az optimalizáció során</label>
@@ -56,8 +56,24 @@
             <input id="intakePercentageOfCarboHydrateInput" type="number" class="form-control" th:field="*{intakePercentageOfCarboHydrate}" step="1" min="0" max="100" required>
         </div>
         <div class="mb-3">
+            <label for="intakeGramsOfSugarInput" class="form-label">A kiválasztott ételek mennyi cukrot tartalmazhatnak (g)</label>
+            <input id="intakeGramsOfSugarInput" type="number" class="form-control" th:field="*{intakeGramsOfSugar}" step="1" min="0" required>
+        </div>
+        <div class="mb-3">
             <label for="intakePercentageOfFatInput" class="form-label">A kiválasztott ételek mekkora százalékban tartalmazzanak zsírt</label>
             <input id="intakePercentageOfFatInput" type="number" class="form-control" th:field="*{intakePercentageOfFat}" step="1" min="0" max="100" required>
+        </div>
+        <div class="mb-3">
+            <label for="intakePercentageOfWholeFatInput" class="form-label">A zsírtartalom mekkora százalékben legyen telített</label>
+            <input id="intakePercentageOfWholeFatInput" type="number" class="form-control" th:field="*{intakePercentageOfWholeFats}" step="1" min="0" max="100" required>
+        </div>
+        <div class="mb-3">
+            <label for="intakeGramsOfFiberInput" class="form-label">A kiválasztott ételek mennyi rostot tartalmazzanak (g)</label>
+            <input id="intakeGramsOfFiberInput" type="number" class="form-control" th:field="*{intakeGramsOfFiber}" step="1" min="0" required>
+        </div>
+        <div class="mb-3">
+            <label for="intakeGramsOfSaltInput" class="form-label">A kiválasztott ételek mennyi sót tartalmazzanak (g)</label>
+            <input id="intakeGramsOfSaltInput" type="number" class="form-control" th:field="*{intakeGramsOfSalt}" step="1" min="0" required>
         </div>
         <div id="percentageWarning" class="text-danger fw-bold mb-3" role="alert" aria-live="polite"></div>
 
@@ -75,13 +91,11 @@
             const submitBtn = form.querySelector('button[type="submit"]');
             const messageElement = document.getElementById('percentageWarning');
 
-            // safety: ensure elements exist
             if (!proteinInput || !carbInput || !fatInput || !messageElement || !submitBtn) return;
 
             const inputs = [proteinInput, carbInput, fatInput];
 
             function getIntValue(el) {
-                // parseInt is OK since step=1; fallback to 0 for empty/invalid
                 const v = parseInt(el.value, 10);
                 return Number.isNaN(v) ? 0 : v;
             }
@@ -89,7 +103,6 @@
             function validatePercentages() {
                 const total = getIntValue(proteinInput) + getIntValue(carbInput) + getIntValue(fatInput);
 
-                // visual helpers: add/remove invalid class on inputs if needed
                 inputs.forEach(i => i.classList.remove('is-invalid'));
                 messageElement.textContent = '';
 
@@ -97,7 +110,6 @@
                     messageElement.textContent = `A három érték összege jelenleg ${total}%. Ennek 100%-nak kell lennie.`;
                     submitBtn.disabled = true;
 
-                    // mark fields invalid
                     inputs.forEach(i => i.classList.add('is-invalid'));
                 } else {
                     messageElement.textContent = '';
@@ -108,7 +120,6 @@
                 return total === 100;
             }
 
-            // prevent submit on invalid state (extra safety for non-JS disabled button or race conditions)
             form.addEventListener('submit', function (e) {
                 if (!validatePercentages()) {
                     e.preventDefault();
@@ -116,13 +127,11 @@
                 }
             });
 
-            // validate on input/change
             inputs.forEach(input => {
                 input.addEventListener('input', validatePercentages);
                 input.addEventListener('change', validatePercentages);
             });
 
-            // initial check
             validatePercentages();
         });
     </script>

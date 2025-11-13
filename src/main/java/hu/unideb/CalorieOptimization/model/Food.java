@@ -14,7 +14,7 @@ public class Food
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(nullable = false, length  = 20)
+    @Column(nullable = false, length  = 40)
     private String name;
 
     @Column(nullable = false)

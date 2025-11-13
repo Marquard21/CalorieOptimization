@@ -9,8 +9,8 @@ import static java.lang.Math.abs;
 
 public class Individual implements Comparable<Individual>
 {
-    private Gene[][] chromosome; // állapot (gének sorozata == kromoszóma)
-    private int fitness; // állapot fitness értéke (minél alacsonyabb annál jobb)
+    private final Gene[][] chromosome;
+    private final int fitness;
 
     public Individual(Gene[][] chromosome, List<Person> People)
     {
@@ -28,57 +28,62 @@ public class Individual implements Comparable<Individual>
         return fitness;
     }
 
-    private int calculateFitness(List<Person> People) // állapotok fitness értékének kiszámítása
+    private int calculateFitness(List<Person> People)
     {
-        int fitness = 0; // 0-ról indul a fitness
+        int fitness = 0;
 
-        int rows = chromosome.length;
-        int columns = chromosome[0].length;
-
-
-        for (int i = 0; i < rows; i++) // emberenként
+        for (int i = 0; i < chromosome.length; i++)
         {
-            double calneeds = People.get(i).getDailyCalorieNeeds() * ((double) People.get(i).getIntakePercentageOfDailyCalorieNeeds() / 100.0);
-            double totalcals = 0;
-            double proteins = 0;
-            double carbs = 0;
-            double sugar = 0;
-            double fats = 0;
-            double wholefats = 0;
-            double fiber = 0;
-            double salt = 0;
+            Person person = People.get(i);
 
-            for (int j = 0; j < columns; j++) // összes hozzárendelt étel tápanyagtartalmának kiszámítása
+            double calNeeds = person.getDailyCalorieNeeds() / 100  * person.getIntakePercentageOfDailyCalorieNeeds();
+            double totalCals = 0; // kcal
+            double proteins = 0; // kcal
+            double carbs = 0; // kcal
+            double sugar = 0; // g
+            double fats = 0; // kcal
+            double wholeFats = 0; // kcal
+            double fiber = 0; // g
+            double salt = 0; // g
+
+            for (int j = 0; j < chromosome[0].length; j++)
             {
-                Food food = chromosome[i][j].getFood(); // get current food
-                int eaten = chromosome[i][j].getEaten(); // get how much was eaten of current food
+                Food food = chromosome[i][j].getFood();
+                int eaten = chromosome[i][j].getEaten();
 
-                totalcals += food.getEnergy()/100.0 * eaten;
-                proteins += food.getProtein()/100.0  * eaten * 4.0; // 1g fehérje 4 kalória
-                carbs += food.getCarboHydrate()/100.0  * eaten * 4.0; // 1g  szénhidrát 4 kalória
-                sugar += food.getSugar()/100.0  * eaten;
-                fats += food.getFat()/100.0  * eaten * 9.0; // 1g zsír 9 kalória
-                wholefats += food.getWholeFats()/100.0  * eaten * 9.0; // 1g zsír 9 kalória
-                fiber += food.getFiber()/100.0  * eaten;
-                salt += food.getSalt()/100.0  * eaten;
+                totalCals += food.getEnergy() / 100 * eaten;
+                proteins += food.getProtein() / 100  * eaten * 4.0; // 1g fehérje 4 kalória
+                carbs += food.getCarboHydrate() / 100  * eaten * 4.0; // 1g  szénhidrát 4 kalória
+                sugar += food.getSugar() / 100  * eaten;
+                fats += food.getFat() / 100  * eaten * 9.0; // 1g zsír 9 kalória
+                wholeFats += food.getWholeFats() / 100  * eaten * 9.0; // 1g zsír 9 kalória
+                fiber += food.getFiber() / 100  * eaten;
+                salt += food.getSalt() / 100  * eaten;
             }
 
-            fitness += (int) abs(calneeds - totalcals); //fitness hez hozzá adódik az eltérés a várt eredménytől
-            fitness += (int) abs((calneeds * ((double) People.get(i).getIntakePercentageOfCarboHydrate() / 100.0)) - carbs); // ideális szénhidrát - állapot szénhidrát tartalma
-            fitness += (int) abs((calneeds * ((double) People.get(i).getIntakePercentageOfProtein() / 100.0)) - proteins); // ideális fehérje - állapot fehérje tartalma
-            fitness += (int) abs((calneeds * ((double) People.get(i).getIntakePercentageOfFat() / 100.0)) - fats); // ideális zsír - állapot zsír tartalma
-            //fitness += (sugar > 50) ? (int) sugar - 50 : 0; // cukor kevesebb mint 50g naponta az ideális
-            //fitness += (wholefats < (fats * 0.5)) ? (int) ((int) (fats * 0.5) - wholefats) : 0; // a zsírok fele vagy több legyen telített
-            //fitness += (fiber > 50) ? (int) fiber - 50 : 0; // rostból 50g és 20g közt van az ideális
-            //fitness += (fiber < 20 ) ? 20 - (int) fiber : 0; // rostból 50g és 20g közt van az ideális
-            //fitness += (salt > 5) ? (int) salt - 5 : 0; // só-ból kevesebb mint 5g az ideális
+            double calculatedCals = proteins + carbs + fats;
+
+            double bigger = Math.max(totalCals, calculatedCals);
+            double smaller = Math.min(totalCals, calculatedCals);
+            if (calNeeds > bigger)
+                fitness += (int) Math.abs(calNeeds - bigger);
+            else if (calNeeds < smaller)
+                fitness += (int) Math.abs(calNeeds - smaller);
+
+            fitness += (int) abs(carbs / calNeeds * 100 - person.getIntakePercentageOfCarboHydrate());
+            fitness += (int) abs(proteins / calNeeds * 100 - person.getIntakePercentageOfProtein());
+            fitness += sugar > person.getIntakeGramsOfSugar() ? (int) sugar - person.getIntakeGramsOfSugar() : 0;
+            fitness += (int) abs(fats / calNeeds * 100 - person.getIntakePercentageOfFat());
+            fitness += (int) abs(wholeFats / fats  * 100 - person.getIntakePercentageOfWholeFats());
+            fitness += (int) abs(fiber - person.getIntakeGramsOfFiber());
+            fitness += (int) abs(salt - person.getIntakeGramsOfSalt());
         }
 
         return fitness;
     }
 
     @Override
-    public int compareTo(Individual o) // a populáció sorba rendezése fitness alapján történik
+    public int compareTo(Individual o)
     {
         return Integer.compare(this.fitness, o.fitness);
     }

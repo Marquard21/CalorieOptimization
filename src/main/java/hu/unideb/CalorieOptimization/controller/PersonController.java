@@ -3,7 +3,6 @@ package hu.unideb.CalorieOptimization.controller;
 import hu.unideb.CalorieOptimization.security.CustomUserDetails;
 import hu.unideb.CalorieOptimization.model.Person;
 import hu.unideb.CalorieOptimization.repository.PersonRepository;
-import hu.unideb.CalorieOptimization.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -21,13 +20,10 @@ public class PersonController
     @Autowired
     private PersonRepository personRepository;
 
-    @Autowired
-    private UserRepository userRepository;
-
     @GetMapping("/manage_people")
     public String showAllPeople(Model model, @AuthenticationPrincipal CustomUserDetails userDetails)
     {
-        List<Person> peopleList = personRepository.findByUser(userRepository.findByEmail(userDetails.getUsername()));
+        List<Person> peopleList = personRepository.findByUser(userDetails.getUser());
         model.addAttribute("peopleList", peopleList);
         return "manage_people";
     }
@@ -39,9 +35,13 @@ public class PersonController
 
         person.setActivityLevel(1.2);
         person.setIntakePercentageOfDailyCalorieNeeds(100);
-        person.setIntakePercentageOfProtein(30);
-        person.setIntakePercentageOfCarboHydrate(40);
+        person.setIntakePercentageOfProtein(20);
+        person.setIntakePercentageOfCarboHydrate(50);
+        person.setIntakeGramsOfSugar(25);
         person.setIntakePercentageOfFat(30);
+        person.setIntakePercentageOfWholeFats(30);
+        person.setIntakeGramsOfFiber(32);
+        person.setIntakeGramsOfSalt(5);
 
         model.addAttribute("person", person);
         model.addAttribute("pageTitle", "Ember hozzáadása");
@@ -60,7 +60,7 @@ public class PersonController
     @PostMapping("/manage_people/save")
     public String savePerson(Person person, RedirectAttributes rd, @AuthenticationPrincipal CustomUserDetails userDetails)
     {
-        person.setUser(userRepository.findByEmail(userDetails.getUsername()));
+        person.setUser(userDetails.getUser());
         personRepository.save(person);
         rd.addFlashAttribute("message", "Mentés sikeres");
         return "redirect:/manage_people";

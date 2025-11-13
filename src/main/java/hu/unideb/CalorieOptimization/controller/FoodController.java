@@ -3,7 +3,6 @@ package hu.unideb.CalorieOptimization.controller;
 import hu.unideb.CalorieOptimization.security.CustomUserDetails;
 import hu.unideb.CalorieOptimization.repository.FoodRepository;
 import hu.unideb.CalorieOptimization.model.Food;
-import hu.unideb.CalorieOptimization.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -21,13 +20,10 @@ public class FoodController
     @Autowired
     private FoodRepository foodRepository;
 
-    @Autowired
-    private UserRepository userRepository;
-
     @GetMapping("/manage_foods")
     public String showAllFoods(Model model, @AuthenticationPrincipal CustomUserDetails userDetails)
     {
-        List<Food> foodsList = foodRepository.findByUser(userRepository.findByEmail(userDetails.getUsername()));
+        List<Food> foodsList = foodRepository.findByUser(userDetails.getUser());
         model.addAttribute("foodsList", foodsList);
         return "manage_foods";
     }
@@ -52,7 +48,7 @@ public class FoodController
     @PostMapping("/manage_foods/save")
     public String saveFood(Food food, RedirectAttributes rd, @AuthenticationPrincipal CustomUserDetails userDetails)
     {
-        food.setUser(userRepository.findByEmail(userDetails.getUsername()));
+        food.setUser(userDetails.getUser());
         foodRepository.save(food);
         rd.addFlashAttribute("message", "Mentés sikeres");
         return "redirect:/manage_foods";

@@ -20,12 +20,17 @@ public class WebSecurityConfig {
     private DataSource dataSource;
 
     @Bean
-    public UserDetailsService userDetailsService() { return new CustomUserDetailsService(); }
+    public UserDetailsService userDetailsService()
+    {
+        return new CustomUserDetailsService();
+    }
 
     @Bean
-    public BCryptPasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
+    public BCryptPasswordEncoder passwordEncoder()
+    {
+        return new BCryptPasswordEncoder();
+    }
 
-    // Authentication provider
     @Bean
     public DaoAuthenticationProvider authenticationProvider()
     {
@@ -36,7 +41,8 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception
+    {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/register", "/process_register", "/registration_success").permitAll()
