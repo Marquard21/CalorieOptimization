@@ -8,6 +8,7 @@ import hu.unideb.CalorieOptimization.service.algorithm.Individual;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+
 @Service
 public class GeneticAlgorithmServiceImpl implements GeneticAlgorithmService
 {
@@ -18,3 +19,4 @@ public class GeneticAlgorithmServiceImpl implements GeneticAlgorithmService
         return ga.run();
     }
 }
+
