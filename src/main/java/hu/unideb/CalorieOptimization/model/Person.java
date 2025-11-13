@@ -35,7 +35,7 @@ public class Person
     private int weight; // kg
 
     @Column(nullable = false)
-    private double activityLevel; // multiplier [1, 2]
+    private double activityLevel; // szorzó [1, 2]
 
     @Column(nullable = false)
     private int intakePercentageOfDailyCalorieNeeds; // Az optimalizáció során használt kalória mennyiség hány százaléka legyen napi kalóriabeviteli szükségletnek az adott személynél
@@ -249,3 +249,4 @@ public class Person
                 '}';
     }
 }
+
